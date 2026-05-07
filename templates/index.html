@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stock Bot Control Panel</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <div class="scanline"></div>
+  <div class="noise"></div>
+
+  <div class="wrapper">
+
+    <header>
+      <div class="logo-row">
+        <span class="logo-bracket">[</span>
+        <span class="logo-text">STOCKBOT</span>
+        <span class="logo-bracket">]</span>
+      </div>
+      <p class="tagline">Automated Trading Control Panel — v1.0</p>
+      <div class="status-bar">
+        <span class="dot pulse"></span>
+        <span class="status-text">API ONLINE</span>
+        <span class="divider">|</span>
+        <span class="endpoint">localhost:8000</span>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="endpoint-card buy">
+        <div class="card-header">
+          <span class="method">GET</span>
+          <span class="path">/buy_stock</span>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">Triggers the <strong>buy stock bot</strong>. Executes <code>helper_function_buy.py</code> as a subprocess.</p>
+          <a href="/buy_stock" class="btn btn-buy">
+            <span class="btn-icon">▲</span>
+            TRIGGER BUY BOT
+          </a>
+        </div>
+        <div class="card-footer">
+          <span class="response-label">Expected Response:</span>
+          <span class="response-msg">"This will trigger the buy stock bot"</span>
+        </div>
+      </section>
+
+      <section class="endpoint-card sell">
+        <div class="card-header">
+          <span class="method">GET</span>
+          <span class="path">/sell_stock</span>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">Triggers the <strong>sell stock bot</strong>. Executes <code>helper_function_sell.py</code> as a subprocess.</p>
+          <a href="/sell_stock" class="btn btn-sell">
+            <span class="btn-icon">▼</span>
+            TRIGGER SELL BOT
+          </a>
+        </div>
+        <div class="card-footer">
+          <span class="response-label">Expected Response:</span>
+          <span class="response-msg">"This will trigger the sell stock bot"</span>
+        </div>
+      </section>
+
+      <section class="endpoint-card suggest">
+        <div class="card-header">
+          <span class="method">GET</span>
+          <span class="path">/suggest_stocks</span>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">Fetches a <strong>stock suggestion</strong> from your webhook service and displays results as a table.</p>
+          <a href="/suggest_stocks" class="btn btn-suggest">
+            <span class="btn-icon">◆</span>
+            GET STOCK SUGGESTION
+          </a>
+        </div>
+
+        {% if stocks %}
+        <div class="table-wrap">
+          <table class="stock-table">
+            <thead>
+              <tr>
+                <th>SYMBOL</th>
+                <th>PRICE (PKR)</th>
+                <th>ACTION</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in stocks %}
+              <tr>
+                <td class="sym">{{ s.symbol }}</td>
+                <td class="price">{{ s.price }}</td>
+                <td class="action action-{{ s.action | lower | replace(' ', '-') }}">{{ s.action }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% elif raw %}
+        <div class="card-footer">
+          <span class="response-label">Raw Response:</span>
+          <span class="response-msg">{{ raw }}</span>
+        </div>
+        {% else %}
+        <div class="card-footer">
+          <span class="response-label">Latest Suggestion:</span>
+          <span class="response-msg">No suggestion yet.</span>
+        </div>
+        {% endif %}
+
+      </section>
+
+      <section class="endpoint-card home">
+        <div class="card-header">
+          <span class="method">GET</span>
+          <span class="path">/</span>
+        </div>
+        <div class="card-body">
+          <p class="card-desc">Home endpoint. Returns a welcome message and usage instructions for the Stock Bot API.</p>
+          <a href="/" class="btn btn-home">
+            <span class="btn-icon">⌂</span>
+            VISIT HOME
+          </a>
+        </div>
+        <div class="card-footer">
+          <span class="response-label">Expected Response:</span>
+          <span class="response-msg">"Welcome to the Stock Bot API!"</span>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <p>Built with <span class="accent">FastAPI</span> · Python subprocess automation</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>
