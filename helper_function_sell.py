@@ -120,6 +120,25 @@ def sell(driver, wait, symbol):
     print(f"SELL order placed for {symbol}!")
     time.sleep(6)
 
+     # Enter PIN in Trading Pin Verification dialog
+    '''pin_field = wait.until(
+        EC.presence_of_element_located(
+            (By.XPATH, "//tr[@id='OrderPinCodeField-inputRow']//input")
+        )
+    )
+    pin_field.clear()
+    pin_field.send_keys(PIN)
+    print("PIN entered!")
+    time.sleep(1)
+
+    # Click the Trade button
+    trade_button = wait.until(
+     EC.element_to_be_clickable((By.ID, "button-1196-btnEl"))
+        )
+    trade_button.click()
+    print("Trade button clicked!")
+    time.sleep(6)'''
+
 
 try:
     for symbol, suggestion in sell_data.items():
