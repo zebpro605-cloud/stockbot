@@ -15,7 +15,7 @@ app = FastAPI()
 
 WEBHOOK_URL = os.getenv(
     "WEBHOOK_URL",
-    "http://localhost:5678/webhook/f3604670-82e0-48cd-98f4-5cebeec36ce1"
+    "https://primary-production-c9640.up.railway.app/webhook/f3604670-82e0-48cd-98f4-5cebeec36ce1"
 )
 
 # Configure static files (CSS, JS, images)
