@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.requests import Request
@@ -13,37 +14,45 @@ from urllib.request import urlopen
 
 app = FastAPI()
 
+# ── CORS ──────────────────────────────────────────────────────────────────────
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],        # Replace * with your frontend URL for production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ── Config ────────────────────────────────────────────────────────────────────
 WEBHOOK_URL = os.getenv(
     "WEBHOOK_URL",
     "https://primary-production-c9640.up.railway.app/webhook/f3604670-82e0-48cd-98f4-5cebeec36ce1"
 )
 
-# Configure static files (CSS, JS, images)
+# ── Static & Templates ────────────────────────────────────────────────────────
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Configure templates
 templates = Jinja2Templates(directory="templates")
 
 
+# ── Helpers ───────────────────────────────────────────────────────────────────
 def fetch_webhook_text() -> str:
     try:
         req = UrlRequest(WEBHOOK_URL, headers={"User-Agent": "fastapi-stockbot"})
         with urlopen(req, timeout=300) as response:
             payload = response.read().decode("utf-8", errors="replace").strip()
         return payload or "No suggestion returned."
-    except URLError:
-        return "Webhook error: unable to reach suggestion service."
+    except URLError as e:
+        print(f"[ERROR] URLError: {e}")
+        return f"Webhook error: unable to reach suggestion service. ({e.reason})"
     except Exception as exc:
+        print(f"[ERROR] Unexpected: {exc}")
         return f"Webhook error: {exc}"
 
 
 def parse_suggestion(raw: str) -> list:
     # Extract inner string from [{"output":"..."}] wrapper
     match = re.search(r'"output"\s*:\s*"(.*?)"(?:\s*\}|\s*\])', raw, re.DOTALL)
-    if match:
-        inner = match.group(1)
-    else:
-        inner = raw
+    inner = match.group(1) if match else raw
 
     # Unescape \n
     inner = inner.replace("\\n", "\n")
@@ -52,13 +61,15 @@ def parse_suggestion(raw: str) -> list:
     # Match pattern: SYMBOL - PKR PRICE: ==> ACTION
     pattern = re.compile(r'([A-Z0-9]+)\s*-\s*PKR\s*([\d.]+)\s*:?\s*==>\s*([A-Z ]+)')
     for m in pattern.finditer(inner):
-        symbol = m.group(1).strip()
-        price  = m.group(2).strip()
-        action = m.group(3).strip()
-        rows.append({"symbol": symbol, "price": price, "action": action})
+        rows.append({
+            "symbol": m.group(1).strip(),
+            "price":  m.group(2).strip(),
+            "action": m.group(3).strip()
+        })
     return rows
 
 
+# ── Routes ────────────────────────────────────────────────────────────────────
 @app.get("/")
 def home(request: Request):
     return templates.TemplateResponse(request=request, name="index.html")
@@ -71,7 +82,10 @@ def suggest_stocks(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"stocks": stocks, "raw": raw if not stocks else None}
+        context={
+            "stocks": stocks,
+            "raw": raw if not stocks else None
+        }
     )
 
 
@@ -107,7 +121,7 @@ def sell_stock():
     }
 
 
-# Required for Railway: bind to PORT env variable
+# ── Entry point ───────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8000))
