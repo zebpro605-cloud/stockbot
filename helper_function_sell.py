@@ -5,7 +5,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from delete import remove_bought_symbols_from_suggestions, get_sheet_data
 import time
 from dotenv import load_dotenv
 import os
@@ -23,10 +22,10 @@ PIN = os.getenv("PIN")
 def get_driver():
     """Configure headless Chrome for Railway (containerized) environment."""
     chrome_options = Options()
-    chrome_options.add_argument("--headless=new")          # Headless mode (no GUI)
-    chrome_options.add_argument("--no-sandbox")            # Required on Railway
-    chrome_options.add_argument("--disable-dev-shm-usage") # Prevents /dev/shm issues
-    chrome_options.add_argument("--disable-gpu")           # No GPU in containers
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--window-size=1920,1080")
     chrome_options.add_argument("--disable-extensions")
     chrome_options.add_argument("--disable-infobars")
@@ -124,9 +123,8 @@ def sell(driver, wait, symbol):
 
 try:
     for symbol, suggestion in sell_data.items():
-        if suggestion.upper() == "SELL" or suggestion.upper() == "SOLD":
+        if suggestion.upper() in ("SELL", "SOLD"):
             sell(driver, wait, symbol)
-            remove_bought_symbols_from_suggestions()
 finally:
     driver.quit()
     print("Driver closed.")
